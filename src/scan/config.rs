@@ -23,7 +23,7 @@ pub struct ResourceConfig {
 }
 
 /// 函数配置
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FuncConfig {
     pub list: Vec<String>,
     pub extensions: Vec<String>,
@@ -31,7 +31,7 @@ pub struct FuncConfig {
 }
 
 /// 转换配置
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TransConfig {
     pub extensions: Vec<String>,
     pub babylon: BabelOptions,

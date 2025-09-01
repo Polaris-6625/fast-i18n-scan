@@ -1,6 +1,6 @@
 {
   "name": "fast-i18n-scan",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "description": "Fast and efficient internationalization scanning library for JavaScript/TypeScript projects, written in Rust",
   "main": "index.js",
   "types": "index.d.ts",
@@ -53,8 +53,8 @@
     "@napi-rs/cli": "^2.18.0"
   },
   "optionalDependencies": {
-    "fast-i18n-scan-win32-x64-msvc": "0.2.5",
-    "fast-i18n-scan-darwin-x64": "0.2.5",
-    "fast-i18n-scan-linux-x64-gnu": "0.2.5"
+    "fast-i18n-scan-win32-x64-msvc": "0.2.7",
+    "fast-i18n-scan-darwin-x64": "0.2.7",
+    "fast-i18n-scan-linux-x64-gnu": "0.2.7"
   }
 }

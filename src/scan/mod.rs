@@ -1,6 +1,7 @@
 //! Scanning module for i18n keys and translations
 
 pub mod config;
+pub mod js_config;
 pub mod hash_key;
 pub mod nodes_to_string;
 pub mod parse_func_from_string_by_babel;

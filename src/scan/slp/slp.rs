@@ -190,6 +190,59 @@ impl SisulizerProject {
         serde_json::to_string_pretty(&json_obj).unwrap_or_else(|_| "{}".to_string())
     }
 
+    /// 输出到目录结构 (新增方法)
+    pub fn output_to_directory(&self, output_dir: &str, lang: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+        let target_lang = lang.unwrap_or(&self.native_lang);
+        let output_path = Path::new(output_dir);
+        
+        // 创建输出目录
+        fs::create_dir_all(output_path)?;
+        
+        // 创建 context 和 source 子目录
+        let context_dir = output_path.join("context");
+        let source_dir = output_path.join("source");
+        fs::create_dir_all(&context_dir)?;
+        fs::create_dir_all(&source_dir)?;
+        
+        // 生成 context.json
+        let stats = self.get_stats();
+        let context_data = serde_json::json!({
+            "language": target_lang,
+            "total_keys": stats.total_keys,
+            "active_keys": stats.active_keys,
+            "obsoleted_keys": stats.obsoleted_keys,
+            "generated_at": chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+            "project_info": {
+                "native_language": self.native_lang,
+                "available_languages": self.langs.clone()
+            }
+        });
+        
+        let context_file = context_dir.join("context.json");
+        fs::write(context_file, serde_json::to_string_pretty(&context_data)?)?;
+        
+        // 生成 source/zh.json (或其他语言) - 使用哈希键
+        let mut json_obj = serde_json::Map::new();
+        let mut sorted_keys = self.keys();
+        sorted_keys.sort();
+        
+        for key in sorted_keys {
+            let base_key = get_base_key(&key);
+            if !self.obsoleted_set.contains(&base_key) {
+                if let Some(value) = self.get(&key, target_lang) {
+                    // 生成哈希键
+                    let hash_key = crate::scan::hash_key::hash_key(&value, None, None);
+                    json_obj.insert(hash_key, Value::String(value));
+                }
+            }
+        }
+        
+        let source_file = source_dir.join(format!("{}.json", target_lang));
+        fs::write(source_file, serde_json::to_string_pretty(&json_obj)?)?;
+        
+        Ok(())
+    }
+
     /// 翻译的词条 Key 可能是带上下文或者带复数形式的
     fn try_find_native_string(&self, key: &str) -> Option<String> {
         let base_key = get_base_key(key);

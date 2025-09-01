@@ -65,14 +65,58 @@ result.warnings.forEach(warning => {
 # Install globally
 npm install -g fast-i18n-scan
 
-# Scan files
+# Scan files (JSON format output)
 fast-i18n-scan src/**/*.{js,jsx,ts,tsx}
+
+# Output to directory structure (新功能!)
+fast-i18n-scan "src/**/*.js" -f directory -o ./i18n_output
 
 # Scan with verbose output
 fast-i18n-scan -v src/**/*.{js,jsx,ts,tsx}
 
-# Output to file
+# Output to JSON file
 fast-i18n-scan -o results.json src/**/*.{js,jsx,ts,tsx}
+```
+
+### Directory Output Format
+
+使用 `-f directory` 参数时，扫描结果会生成一个目录结构：
+
+```
+i18n_output/
+├── context/
+│   └── context.json     # 扫描上下文信息
+└── source/
+    └── zh.json          # 中文文本键值对
+```
+
+**context.json** 包含扫描的元数据：
+```json
+{
+  "active_keys": 8,
+  "generated_at": "2025-09-01 15:25:25 UTC",
+  "language": "zh",
+  "obsoleted_keys": 0,
+  "project_info": {
+    "available_languages": ["zh"],
+    "native_language": "zh"
+  },
+  "total_keys": 8
+}
+```
+
+**zh.json** 包含生成的键值对：
+```json
+{
+  "k_00035cd": "欢迎使用我们的应用",
+  "k_00035g2": "这是一个测试页面", 
+  "k_00037vt": "点击这里",
+  "k_0003vl0": "用户名",
+  "k_0003xiv": "密码",
+  "k_0003y73": "登录",
+  "k_0003y9x": "注册新账户",
+  "k_0003yr1": "忘记密码？"
+}
 ```
 
 ## API Reference

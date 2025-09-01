@@ -1,5 +1,6 @@
 use clap::{Arg, Command};
 use fast_i18n_scan::{scan_files, get_default_config};
+use fast_i18n_scan::scan::js_config::JsConfig;
 use std::process;
 use glob::glob;
 
@@ -31,9 +32,15 @@ fn main() {
         .arg(
             Arg::new("files")
                 .help("Files to scan")
-                .required(true)
                 .num_args(1..)
                 .value_name("FILE"),
+        )
+        .arg(
+            Arg::new("config")
+                .short('c')
+                .long("config")
+                .help("Configuration file path")
+                .value_name("CONFIG_FILE"),
         )
         .arg(
             Arg::new("output")
@@ -46,7 +53,7 @@ fn main() {
             Arg::new("format")
                 .short('f')
                 .long("format")
-                .help("Output format")
+                .help("Output format (json, directory)")
                 .value_name("FORMAT")
                 .default_value("json"),
         )
@@ -59,11 +66,32 @@ fn main() {
         )
         .get_matches();
 
-    let file_patterns: Vec<String> = matches
-        .get_many::<String>("files")
-        .unwrap()
-        .map(|s| s.to_string())
-        .collect();
+    // 处理配置文件或命令行参数
+    let file_patterns: Vec<String> = if let Some(config_path) = matches.get_one::<String>("config") {
+        // 从配置文件加载
+        match JsConfig::from_js_file(config_path) {
+            Ok(js_config) => {
+                println!("Loaded config from: {}", config_path);
+                if matches.get_flag("verbose") {
+                    println!("Config: {:?}", js_config);
+                }
+                js_config.input
+            }
+            Err(e) => {
+                eprintln!("Error loading config file: {}", e);
+                std::process::exit(1);
+            }
+        }
+    } else {
+        // 从命令行参数
+        matches
+            .get_many::<String>("files")
+            .map(|values| values.map(|s| s.to_string()).collect())
+            .unwrap_or_else(|| {
+                eprintln!("Error: Either provide files as arguments or use --config option");
+                std::process::exit(1);
+            })
+    };
 
     let verbose = matches.get_flag("verbose");
 
@@ -191,6 +219,28 @@ fn main() {
                         }
                     } else {
                         println!("{}", json_output);
+                    }
+                }
+                "directory" => {
+                    // 使用新的目录输出格式
+                    let mut project = fast_i18n_scan::scan::slp::SisulizerProject::new(None);
+                    
+                    // 将扫描结果转换为 SisulizerProject 格式
+                    for key in &result.keys {
+                        project.add(key, "zh", key);
+                    }
+                    
+                    let default_output = "./i18n_output".to_string();
+                    let output_dir = matches.get_one::<String>("output")
+                        .unwrap_or(&default_output);
+                    
+                    if let Err(e) = project.output_to_directory(output_dir, Some("zh")) {
+                        eprintln!("Failed to write directory output: {}", e);
+                        process::exit(1);
+                    }
+                    
+                    if verbose {
+                        println!("Results written to directory: {}", output_dir);
                     }
                 }
                 _ => {
