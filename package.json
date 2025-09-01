@@ -1,0 +1,60 @@
+{
+  "name": "fast-i18n-scan",
+  "version": "0.2.5",
+  "description": "Fast and efficient internationalization scanning library for JavaScript/TypeScript projects, written in Rust",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "bin": {
+    "fast-i18n-scan": "./bin/fast-i18n-scan"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node",
+    "bin/"
+  ],
+  "scripts": {
+    "build": "napi build --platform --release --features napi && cargo build --release --features cli && node scripts/prepare-binary.js",
+    "build:debug": "napi build --platform --features napi && cargo build --features cli && node scripts/prepare-binary.js",
+    "prepublishOnly": "napi prepublish -t npm && cargo build --release --features cli && node scripts/prepare-binary.js",
+    "test": "cargo test --no-default-features --features cli",
+    "version": "napi version"
+  },
+  "keywords": [
+    "i18n",
+    "internationalization",
+    "scanning",
+    "javascript",
+    "typescript",
+    "rust",
+    "napi",
+    "performance",
+    "localization",
+    "translation"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/fast-i18n-scan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/fast-i18n-scan/issues"
+  },
+  "homepage": "https://github.com/your-username/fast-i18n-scan#readme",
+  "engines": {
+    "node": ">= 14"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.0"
+  },
+  "optionalDependencies": {
+    "fast-i18n-scan-win32-x64-msvc": "0.2.5",
+    "fast-i18n-scan-darwin-x64": "0.2.5",
+    "fast-i18n-scan-linux-x64-gnu": "0.2.5"
+  }
+}
