@@ -215,21 +215,91 @@ Pre-built binaries are available for:
 
 ## Development
 
+### 快速开始
+
 ```bash
-# Install dependencies
-npm install
+# 项目初始化（推荐）
+npm run setup
+# 或者
+./scripts/setup.sh
 
-# Build native module
+# 开发环境
+npm run dev
+# 或者
+./scripts/dev.sh
+
+# 构建项目
 npm run build
+# 或者
+./scripts/build.sh
 
-# Build for development
-npm run build:debug
-
-# Run tests
+# 运行测试
 npm test
+# 或者
+./scripts/test.sh
 
-# Prepare for publishing
-npm run prepublishOnly
+# 清理项目
+npm run clean
+# 或者
+./scripts/clean.sh
+```
+
+### 项目结构
+
+```
+fast-i18n-scan/
+├── src/                    # Rust源代码
+│   ├── bin/               # CLI入口
+│   ├── scan/              # 扫描核心逻辑
+│   └── utils/             # 工具函数
+├── scripts/               # 统一脚本目录
+│   ├── setup.sh          # 项目初始化
+│   ├── build.sh          # 构建脚本
+│   ├── test.sh           # 测试脚本
+│   ├── dev.sh            # 开发脚本
+│   ├── clean.sh          # 清理脚本
+│   ├── demo.sh           # Demo运行
+│   └── README.md         # 脚本说明
+├── __test__/              # 统一测试目录
+│   ├── unit/             # 单元测试
+│   ├── integration/      # 集成测试
+│   ├── fixtures/         # 测试夹具
+│   └── README.md         # 测试说明
+├── demo/                  # 示例代码
+├── examples/              # 使用示例
+└── bin/                   # 发布的二进制文件
+```
+
+### 脚本说明
+
+- **setup.sh**: 项目初始化，安装依赖和设置环境
+- **build.sh**: 完整构建，包含NAPI模块和CLI二进制文件
+- **test.sh**: 运行所有测试（单元测试、集成测试、CLI测试、NAPI测试）
+- **dev.sh**: 开发环境启动
+- **clean.sh**: 清理所有构建产物
+- **demo.sh**: 运行demo示例
+
+### 测试
+
+项目包含完整的测试套件：
+
+- **单元测试**: Rust代码的单元测试
+- **集成测试**: 完整功能的集成测试
+- **CLI测试**: 命令行工具的功能测试
+- **NAPI测试**: Node.js绑定的测试
+- **Demo测试**: 示例代码的测试
+
+运行特定测试：
+
+```bash
+# 仅运行单元测试
+cargo test --no-default-features --features cli
+
+# 仅运行集成测试
+cargo test --test integration
+
+# 仅运行CLI测试
+cargo run --features cli -- __test__/fixtures/demo_test.jsx --verbose
 ```
 
 ## Contributing

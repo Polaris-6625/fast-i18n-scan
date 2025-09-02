@@ -14,10 +14,15 @@
     "bin/"
   ],
   "scripts": {
-    "build": "napi build --platform --release --features napi && cargo build --release --features cli && node scripts/prepare-binary.js",
+    "build": "./scripts/build.sh",
     "build:debug": "napi build --platform --features napi && cargo build --features cli && node scripts/prepare-binary.js",
     "prepublishOnly": "napi prepublish -t npm && cargo build --release --features cli && node scripts/prepare-binary.js",
-    "test": "cargo test --no-default-features --features cli",
+    "test": "./scripts/test.sh",
+    "dev": "./scripts/dev.sh",
+    "clean": "./scripts/clean.sh",
+    "setup": "./scripts/setup.sh",
+    "demo": "./scripts/demo.sh",
+    "validate": "./scripts/validate.sh",
     "version": "napi version"
   },
   "keywords": [

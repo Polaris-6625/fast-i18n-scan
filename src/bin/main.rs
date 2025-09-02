@@ -1,8 +1,10 @@
 use clap::{Arg, Command};
 use fast_i18n_scan::{scan_files, get_default_config};
-use fast_i18n_scan::scan::js_config::JsConfig;
 use std::process;
 use glob::glob;
+
+#[cfg(feature = "cli")]
+use fast_i18n_scan::scan::js_config::JsConfig;
 
 // Function to expand brace patterns like *.{js,jsx,ts,tsx}
 fn expand_braces(pattern: &str) -> Vec<String> {
@@ -69,18 +71,26 @@ fn main() {
     // 处理配置文件或命令行参数
     let file_patterns: Vec<String> = if let Some(config_path) = matches.get_one::<String>("config") {
         // 从配置文件加载
-        match JsConfig::from_js_file(config_path) {
-            Ok(js_config) => {
-                println!("Loaded config from: {}", config_path);
-                if matches.get_flag("verbose") {
-                    println!("Config: {:?}", js_config);
+        #[cfg(feature = "cli")]
+        {
+            match JsConfig::from_js_file(config_path) {
+                Ok(js_config) => {
+                    println!("Loaded config from: {}", config_path);
+                    if matches.get_flag("verbose") {
+                        println!("Config: {:?}", js_config);
+                    }
+                    js_config.input
                 }
-                js_config.input
+                Err(e) => {
+                    eprintln!("Error loading config file: {}", e);
+                    std::process::exit(1);
+                }
             }
-            Err(e) => {
-                eprintln!("Error loading config file: {}", e);
-                std::process::exit(1);
-            }
+        }
+        #[cfg(not(feature = "cli"))]
+        {
+            eprintln!("Config file support requires 'cli' feature");
+            std::process::exit(1);
         }
     } else {
         // 从命令行参数
@@ -222,20 +232,57 @@ fn main() {
                     }
                 }
                 "directory" => {
-                    // 使用新的目录输出格式
-                    let mut project = fast_i18n_scan::scan::slp::SisulizerProject::new(None);
-                    
-                    // 将扫描结果转换为 SisulizerProject 格式
-                    for key in &result.keys {
-                        project.add(key, "zh", key);
-                    }
-                    
+                    // 简化的目录输出格式
                     let default_output = "./i18n_output".to_string();
                     let output_dir = matches.get_one::<String>("output")
                         .unwrap_or(&default_output);
                     
-                    if let Err(e) = project.output_to_directory(output_dir, Some("zh")) {
-                        eprintln!("Failed to write directory output: {}", e);
+                    // 创建输出目录结构
+                    std::fs::create_dir_all(format!("{}/context", output_dir))
+                        .map_err(|e| {
+                            eprintln!("Failed to create context directory: {}", e);
+                            process::exit(1);
+                        }).ok();
+                    
+                    std::fs::create_dir_all(format!("{}/source", output_dir))
+                        .map_err(|e| {
+                            eprintln!("Failed to create source directory: {}", e);
+                            process::exit(1);
+                        }).ok();
+                    
+                    // 创建 context.json
+                    let context = serde_json::json!({
+                        "active_keys": result.keys.len(),
+                        "generated_at": chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+                        "language": "zh",
+                        "obsoleted_keys": 0,
+                        "project_info": {
+                            "available_languages": ["zh"],
+                            "native_language": "zh"
+                        },
+                        "total_keys": result.keys.len()
+                    });
+                    
+                    if let Err(e) = std::fs::write(
+                        format!("{}/context/context.json", output_dir),
+                        serde_json::to_string_pretty(&context).unwrap()
+                    ) {
+                        eprintln!("Failed to write context.json: {}", e);
+                        process::exit(1);
+                    }
+                    
+                    // 创建 zh.json
+                    let zh_json = serde_json::to_string_pretty(&result.translations)
+                        .unwrap_or_else(|e| {
+                            eprintln!("Failed to serialize translations: {}", e);
+                            process::exit(1);
+                        });
+                    
+                    if let Err(e) = std::fs::write(
+                        format!("{}/source/zh.json", output_dir),
+                        zh_json
+                    ) {
+                        eprintln!("Failed to write zh.json: {}", e);
                         process::exit(1);
                     }
                     

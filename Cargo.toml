@@ -15,6 +15,11 @@ crate-type = ["cdylib", "rlib"]
 [[bin]]
 name = "fast-i18n-scan"
 path = "src/bin/main.rs"
+
+# 集成测试配置
+[[test]]
+name = "integration"
+path = "__test__/integration/mod.rs"
 required-features = ["cli"]
 
 [dependencies]
@@ -49,6 +54,6 @@ napi-build = "2.0"
 tempfile = "3.8"
 
 [features]
-default = []
+default = ["cli"]
 napi = ["dep:napi", "dep:napi-derive"]
 cli = ["clap", "glob"]
